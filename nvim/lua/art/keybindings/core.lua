@@ -1,6 +1,3 @@
-local wildwest = require("art.extras.cowboy")
-wildwest.cowboy()
-
 vim.g.mapleader = " "
 vim.keymap.set("n", "Q", "<nop>", { desc = "unbind Q" })
 
