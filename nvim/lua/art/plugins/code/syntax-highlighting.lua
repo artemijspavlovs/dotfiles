@@ -9,12 +9,12 @@ return {
 		highlight = { enable = true },
 		indent = { enable = true },
 
-		autotag = {
-			enable = true,
-			enable_rename = true,
-			enable_close = true,
-			enable_close_on_slash = true,
-		},
+		-- autotag = {
+		-- 	enable = true,
+		-- 	enable_rename = true,
+		-- 	enable_close = true,
+		-- 	enable_close_on_slash = true,
+		-- },
 
 		rainbow = {
 			enable = true,
@@ -120,4 +120,3 @@ return {
 		treesitter.setup(opts)
 	end,
 }
-
