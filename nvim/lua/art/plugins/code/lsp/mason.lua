@@ -71,6 +71,9 @@ return {
 					"tailwindcss",
 					"eslint",
 					"html",
+
+					-- misc
+					"pyright",
 				},
 			})
 		end,
