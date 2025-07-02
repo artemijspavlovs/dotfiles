@@ -2,25 +2,18 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	event = { "BufReadPre", "BufWritePost", "BufNewFile" },
 	build = ":TSUpdate",
-	dependencies = {
-		"windwp/nvim-ts-autotag",
-	},
 	opts = {
 		highlight = { enable = true },
 		indent = { enable = true },
-
-		-- autotag = {
-		-- 	enable = true,
-		-- 	enable_rename = true,
-		-- 	enable_close = true,
-		-- 	enable_close_on_slash = true,
-		-- },
 
 		rainbow = {
 			enable = true,
 			extended_mode = true,
 			max_file_lines = nil,
 		},
+
+		-- Performance optimizations
+		disable = { "large_file" },
 
 		ensure_installed = {
 			--
@@ -51,6 +44,9 @@ return {
 			"passwd",
 			"terraform",
 			"hcl",
+			"dockerfile",
+			"gitignore",
+			"gitattributes",
 
 			-- rust
 			"rust",
@@ -72,6 +68,11 @@ return {
 			"typescript",
 			"tsx",
 			"jsdoc",
+			"css",
+			"scss",
+
+			-- sql
+			"sql",
 		},
 
 		incremental_selection = {

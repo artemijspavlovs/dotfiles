@@ -13,11 +13,15 @@ local formatters_by_ft = {
 	},
 
 	-- web
-	javascript = { "biome" },
-	typescript = { "biome" },
-	typescriptreact = { "biome" },
-	javascriptreact = { "biome" },
+	javascript = { "eslint" },
+	typescript = { "eslint" },
+	javascriptreact = { "eslint" },
+	typescriptreact = { "eslint" },
 	css = { "stylelint" },
+	scss = { "stylelint", "prettier" },
+	html = { "prettier" },
+	json = { "prettier", "fixjson" },
+	jsonc = { "prettier" },
 
 	-- iac, devops, cloud
 	terraform = { "terraform_fmt" },
@@ -28,12 +32,13 @@ local formatters_by_ft = {
 	-- etc
 	sh = { "shellharden", "shellcheck" },
 	yaml = { "yamlfmt" },
-	json = { "fixjson" },
 	-- json = { "biome" }, // biome didn't work 20241110
 	-- xml = { "yq" },
 	-- csv = { "yq" },
 	toml = { "taplo" },
 	markdown = { "mdslw", "cbfmt", "markdownlint-cli2", "markdown-toc" },
+	python = { "black", "isort" },
+	sql = { "sqlformat" },
 
 	["*"] = {
 		"squeeze_blanks",
@@ -51,6 +56,14 @@ local keys = {
 		mode = { "n", "v" },
 		desc = "Format Injected Langs",
 	},
+	{
+		"<leader>cf",
+		function()
+			require("conform").format({ async = true, lsp_fallback = true })
+		end,
+		mode = { "n", "v" },
+		desc = "Format Buffer",
+	},
 }
 
 local opts = {
@@ -60,6 +73,18 @@ local opts = {
 	format_on_save = {
 		lsp_fallback = true,
 		timeout_ms = 500,
+	},
+	-- Configure formatters
+	formatters = {
+		prettier = {
+			prepend_args = { "--print-width", "120", "--tab-width", "2", "--use-tabs", "false" },
+		},
+		black = {
+			prepend_args = { "--line-length", "88" },
+		},
+		isort = {
+			prepend_args = { "--profile", "black" },
+		},
 	},
 }
 

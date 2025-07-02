@@ -54,6 +54,8 @@ return {
 					accept_suggestion = "<Tab>",
 					clear_suggestion = "<C-]>",
 					accept_word = "<C-j>",
+					accept_line = "<C-l>",
+					reject_suggestion = "<C-k>",
 				},
 				ignore_filetypes = { cpp = true }, -- or { "cpp", }
 				color = {
@@ -64,7 +66,10 @@ return {
 				disable_inline_completion = false, -- disables inline completion for use with cmp
 				disable_keymaps = false, -- disables built-in keymaps for more manual control
 				condition = function()
-					return false
+					-- Enable Supermaven for most file types, disable for specific ones
+					local filetype = vim.bo.filetype
+					local disabled_filetypes = { "gitcommit", "markdown", "help" }
+					return vim.tbl_contains(disabled_filetypes, filetype)
 				end, -- condition to check for stopping supermaven, `true` means to stop supermaven when the condition is true.
 			})
 		end,

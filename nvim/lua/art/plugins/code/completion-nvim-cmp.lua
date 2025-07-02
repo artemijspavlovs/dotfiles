@@ -10,6 +10,7 @@ return {
 			"hrsh7th/cmp-nvim-lsp",
 			"hrsh7th/cmp-buffer",
 			"hrsh7th/cmp-path",
+			"hrsh7th/cmp-cmdline",
 			"rafamadriz/friendly-snippets",
 			{
 				"L3MON4D3/LuaSnip",
@@ -32,6 +33,46 @@ return {
 			vim.api.nvim_set_hl(0, "CmpGhostText", { link = "Comment", default = true })
 
 			require("luasnip.loaders.from_vscode").lazy_load()
+
+			-- Custom sorting function
+			local function compare(entry1, entry2)
+				local kind_weights = {
+					Text = 1,
+					Method = 2,
+					Function = 3,
+					Constructor = 4,
+					Field = 5,
+					Variable = 6,
+					Class = 7,
+					Interface = 8,
+					Module = 9,
+					Property = 10,
+					Unit = 11,
+					Value = 12,
+					Enum = 13,
+					Keyword = 14,
+					Snippet = 15,
+					Color = 16,
+					File = 17,
+					Reference = 18,
+					Folder = 19,
+					EnumMember = 20,
+					Constant = 21,
+					Struct = 22,
+					Event = 23,
+					Operator = 24,
+					TypeParameter = 25,
+				}
+
+				local kind1 = kind_weights[entry1:get_kind()] or 0
+				local kind2 = kind_weights[entry2:get_kind()] or 0
+
+				if kind1 ~= kind2 then
+					return kind1 < kind2
+				end
+
+				return entry1:get_word() < entry2:get_word()
+			end
 
 			cmp.setup({
 				completion = {
@@ -92,7 +133,37 @@ return {
 					},
 				},
 
-				sorting = defaults.sorting,
+				sorting = {
+					comparators = {
+						compare,
+						cmp.config.compare.offset,
+						cmp.config.compare.exact,
+						cmp.config.compare.score,
+						cmp.config.compare.recently_used,
+						cmp.config.compare.locality,
+						cmp.config.compare.kind,
+						cmp.config.compare.sort_text,
+						cmp.config.compare.length,
+						cmp.config.compare.order,
+					},
+				},
+			})
+
+			-- Command line completion
+			cmp.setup.cmdline(":", {
+				mapping = cmp.mapping.preset.cmdline(),
+				sources = cmp.config.sources({
+					{ name = "path" },
+				}, {
+					{ name = "cmdline" },
+				}),
+			})
+
+			cmp.setup.cmdline("/", {
+				mapping = cmp.mapping.preset.cmdline(),
+				sources = {
+					{ name = "buffer" },
+				},
 			})
 		end,
 	},

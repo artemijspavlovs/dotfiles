@@ -3,124 +3,120 @@ return {
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"williamboman/mason-lspconfig.nvim",
-		"hrsh7th/cmp-nvim-lsp",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
 		{ "folke/neodev.nvim", opts = {} },
 	},
 	config = function()
-		local lspconfig = require("lspconfig")
-		local util = require("lspconfig.util")
-		local mason_lspconfig = require("mason-lspconfig")
-		local cmp_nvim_lsp = require("cmp_nvim_lsp")
-
 		local keymap = vim.keymap
 
+		-- Set up LspAttach autocmd for keybindings
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
-			callback = function()
-				keymap.set("n", "gR", "<cmd>Telescope lsp_references<CR>", { desc = "show definition, references" })
-				keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "go to declaration" })
-				keymap.set("n", "gd", "<cmd>Telescope lsp_definitions<CR>", { desc = "show lsp definitions" })
-				keymap.set("n", "gi", "<cmd>Telescope lsp_implementations<CR>", { desc = "show lsp implementations" })
-				keymap.set("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", { desc = "show lsp type definitions" })
+			callback = function(args)
+				local buf = args.buf
+				local opts = { buffer = buf, noremap = true, silent = true }
 
-				keymap.set({ "n", "v" }, "<leader>c", vim.lsp.buf.code_action, { desc = "code" })
-				keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "see available code actions" })
+				-- Set keybindings with error handling
+				local function set_keymap(mode, lhs, rhs, options)
+					local success, err = pcall(vim.keymap.set, mode, lhs, rhs, options)
+					if not success then
+						vim.notify(
+							"Failed to set keymap: " .. mode .. " " .. lhs .. " Error: " .. err,
+							vim.log.levels.ERROR
+						)
+					end
+				end
 
-				keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "smart rename" })
+				set_keymap("n", "gR", "<cmd>Telescope lsp_references<CR>", opts)
+				set_keymap("n", "gD", vim.lsp.buf.declaration, opts)
+				set_keymap("n", "gd", "<cmd>Telescope lsp_definitions<CR>", opts)
+				set_keymap("n", "gi", "<cmd>Telescope lsp_implementations<CR>", opts)
+				set_keymap("n", "gt", "<cmd>Telescope lsp_type_definitions<CR>", opts)
+
+				set_keymap({ "n", "v" }, "<leader>c", vim.lsp.buf.code_action, opts)
+				set_keymap({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
+
+				set_keymap("n", "<leader>rn", vim.lsp.buf.rename, opts)
 
 				-- diagnostics
-				keymap.set(
-					"n",
-					"<leader>gf",
-					"<cmd>Telescope diagnostics bufnr=0<CR>",
-					{ desc = "show diagnostics for file" }
-				)
-				keymap.set("n", "<leader>gl", vim.diagnostic.open_float, { desc = "show diagnostics for line" })
-				vim.keymap.set(
-					"n",
-					"<leader>gw",
-					":lua vim.diagnostic.open_float(nil, { focus = false})<CR>",
-					{ desc = "open diagnostics float" }
-				)
-				vim.keymap.set(
-					"n",
-					"<leader>gj",
-					":lua vim.diagnostic.goto_next()",
-					{ desc = "open diagnostics float" }
-				)
-				vim.keymap.set(
-					"n",
-					"<leader>gk",
-					":lua vim.diagnostic.goto_prev()",
-					{ desc = "open diagnostics float" }
-				)
+				set_keymap("n", "<leader>gf", "<cmd>Telescope diagnostics bufnr=0<CR>", opts)
+				set_keymap("n", "<leader>gl", vim.diagnostic.open_float, opts)
+				set_keymap("n", "<leader>gw", ":lua vim.diagnostic.open_float(nil, { focus = false})<CR>", opts)
+				set_keymap("n", "<leader>gj", ":lua vim.diagnostic.goto_next()", opts)
+				set_keymap("n", "<leader>gk", ":lua vim.diagnostic.goto_prev()", opts)
 
-				keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "jump to previous diagnostic in buffer" })
-				keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "jump to next diagnostic in buffer" })
-				keymap.set("n", "K", vim.lsp.buf.hover, { desc = "show documentation for what is under cursor" })
+				-- Use bracket navigation for diagnostics (standard convention)
+				set_keymap("n", "[d", vim.diagnostic.goto_prev, opts)
+				set_keymap("n", "]d", vim.diagnostic.goto_next, opts)
+				set_keymap("n", "K", vim.lsp.buf.hover, opts)
 
-				keymap.set("n", "<leader>l", "", { desc = "lsp" })
-				keymap.set("n", "<leader>lr", ":LspRestart<CR>", { desc = "mapping to restart lsp if necessary" })
+				set_keymap("n", "<leader>l", "", opts)
+				set_keymap("n", "<leader>lr", ":LspRestart<CR>", opts)
+
+				-- web dev
+				set_keymap("n", "<leader>wto", "<cmd>TypescriptOrganizeImports<cr>", opts)
+				set_keymap("n", "<leader>wtR", "<cmd>TypescriptRenameFile<cr>", opts)
+				set_keymap("n", "<leader>wti", "<cmd>TypescriptAddMissingImports<cr>", opts)
+				set_keymap("n", "<leader>wtu", "<cmd>TypescriptRemoveUnused<cr>", opts)
+				set_keymap("n", "<leader>wtf", "<cmd>TypescriptFixAll<cr>", opts)
+
+				-- React specific commands
+				set_keymap("n", "<leader>wrr", "<cmd>TSToolsRemoveUnusedImports<cr>", opts)
+				set_keymap("n", "<leader>wra", "<cmd>TSToolsAddMissingImports<cr>", opts)
+				set_keymap("n", "<leader>wrf", "<cmd>TSToolsFixAll<cr>", opts)
+
+				-- Rust-specific keybindings
+				if client and client.name == "rust_analyzer" then
+					local rt = require("rust-tools")
+					set_keymap("n", "K", rt.hover_actions.hover_actions, opts)
+					set_keymap("n", "<leader>ca", rt.code_action_group.code_action_group, opts)
+				end
+
+				-- TypeScript-specific settings
+				if client and client.name == "typescript-tools" then
+					-- Enable typescript formatting in favor of prettier
+					client.server_capabilities.documentFormattingProvider = true
+				end
 			end,
 		})
 
-		local capabilities = cmp_nvim_lsp.default_capabilities()
+		-- Set up some global keybindings that don't require LSP
+		keymap.set("n", "<leader>gl", vim.diagnostic.open_float, { desc = "show diagnostics for line" })
+		keymap.set("n", "<leader>gj", vim.diagnostic.goto_next, { desc = "next diagnostic" })
+		keymap.set("n", "<leader>gk", vim.diagnostic.goto_prev, { desc = "previous diagnostic" })
+		keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "jump to previous diagnostic in buffer" })
+		keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "jump to next diagnostic in buffer" })
 
-		local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+		-- Debug command to check LSP status
+		vim.api.nvim_create_user_command("LspStatus", function()
+			local buf = vim.api.nvim_get_current_buf()
+			local clients = vim.lsp.get_active_clients({ bufnr = buf })
+			print("Active LSP clients for current buffer:", #clients)
+			for _, client in ipairs(clients) do
+				print("  -", client.name)
+			end
+
+			-- Check if LspAttach autocmd exists
+			local autocmds = vim.api.nvim_get_autocmds({ event = "LspAttach" })
+			print("LspAttach autocmds:", #autocmds)
+			for _, autocmd in ipairs(autocmds) do
+				print("  - Group:", autocmd.group_name)
+			end
+		end, {})
+
+		local signs = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 		end
 
-		mason_lspconfig.setup_handlers({
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["lua_ls"] = function()
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							diagnostics = {
-								globals = { "vim" },
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
-						},
-					},
-				})
-			end,
-			["graphql"] = function()
-				lspconfig["graphql"].setup({
-					capabilities = capabilities,
-					filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-				})
-			end,
-			["biome"] = function()
-				lspconfig["biome"].setup({
-					capabilities = capabilities,
-					root_dir = util.root_pattern("biome.json", "biome.jsonc"),
-					single_file_support = false,
-					cmd = { "biome", "lsp-proxy" },
-					filetypes = {
-						"javascript",
-						"javascriptreact",
-						"json",
-						"jsonc",
-						"typescript",
-						"typescript.tsx",
-						"typescriptreact",
-						"astro",
-						"svelte",
-						"vue",
-						"css",
-					},
-				})
-			end,
+		-- Configure diagnostic display
+		vim.diagnostic.config({
+			virtual_text = true,
+			signs = true,
+			underline = true,
+			update_in_insert = false,
+			severity_sort = true,
 		})
 	end,
 }

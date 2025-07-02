@@ -18,7 +18,7 @@ local plugins = {
 	{ import = "art.plugins.navigation" },
 	{ import = "art.plugins.code" },
 	{ import = "art.plugins.code.lsp" },
-	{ import = "art.plugins.extra-configuration" },
+	-- { import = "art.plugins.extra-configuration" },
 }
 
 require("lazy").setup(plugins, {
